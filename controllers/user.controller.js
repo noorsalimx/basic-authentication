@@ -46,7 +46,7 @@ class UserController {
       if (verifiedOk) {
         const payload = _.pick(user, ['username', 'isAdmin', 'name']);
         const token = await authService.generateToken(payload);
-        return response.status(200).send({ token });
+        return response.status(200).send({ ...payload, token });
       }
     } catch (error) {
       console.log(error?.message);
