@@ -39,7 +39,7 @@ class AuthService {
         if (user.isAdmin) {
           next();
         } else {
-          response.status(401).send('You are not authorized to create an user');
+          response.status(401).send('You are not an authorized user');
         }
       } else {
         response.status(401).send('Not Authorized');
