@@ -21,7 +21,9 @@ class UserController {
       if (user) {
         return response.status(409).send('username already exists');
       } else {
-        const newUser = new User(request?.body);
+        const newUser = new User(
+          _.pick(request?.body, ['username', 'password', 'name'])
+        );
         const salt = await bcrypt.genSalt();
         newUser.password = await bcrypt.hash(password, salt);
         await newUser.save();
@@ -52,8 +54,24 @@ class UserController {
     }
   }
 
-  async getUser(username) {
-    return;
+  async createUser(request, response) {
+    try {
+      const { username, password } = request?.body;
+
+      const user = await User.findOne({ username });
+      if (user) {
+        return response.status(409).send('username already exists');
+      } else {
+        const newUser = new User(request?.body);
+        const salt = await bcrypt.genSalt();
+        newUser.password = await bcrypt.hash(password, salt);
+        await newUser.save();
+      }
+      response.status(201).send('success');
+    } catch (error) {
+      console.log(error?.message);
+      return error?.message;
+    }
   }
 }
 

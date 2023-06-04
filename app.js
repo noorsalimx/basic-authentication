@@ -6,12 +6,14 @@
 const express = require('express');
 const app = express();
 const userRouter = require('./routers/user.route');
+const adminRoute = require('./routers/admin.route');
 
 app.use(express.json());
-app.use('/health', (req, res) => {
+app.use('/api/user', userRouter);
+app.use('/api/admin', adminRoute);
+app.use('/', (req, res) => {
   res.status(200).send('Hello!');
 });
-app.use('/api/user', userRouter);
-app.use('/api/admin', userRouter);
+app.use('/health', (req, res) => res.redirect(307, '/'));
 
 module.exports = app;
