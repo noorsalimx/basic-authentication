@@ -11,7 +11,7 @@ const adminRoute = require('./routers/admin.route');
 app.use(express.json());
 app.use('/api/user', userRouter);
 app.use('/api/admin', adminRoute);
-app.use('/', (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).send('Hello!');
 });
 app.use('/health', (req, res) => res.redirect(307, '/'));

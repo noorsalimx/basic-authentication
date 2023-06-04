@@ -13,6 +13,16 @@ const authService = new AuthService();
 class UserController {
   constructor() {}
 
+  async getAllUser(request, response) {
+    try {
+      const users = await User.find({}, { password: 0 });
+      return response.status(200).send(users);
+    } catch (error) {
+      console.log(error?.message);
+      return response.status(500).send(error?.message);
+    }
+  }
+
   async signUp(request, response) {
     try {
       const { username, password } = request?.body;
@@ -31,7 +41,7 @@ class UserController {
       response.status(201).send('success');
     } catch (error) {
       console.log(error?.message);
-      return error?.message;
+      return response.status(500).send(error?.message);
     }
   }
 
@@ -50,7 +60,7 @@ class UserController {
       }
     } catch (error) {
       console.log(error?.message);
-      return error?.message;
+      return response.status(500).send(error?.message);
     }
   }
 
@@ -70,7 +80,7 @@ class UserController {
       response.status(201).send('success');
     } catch (error) {
       console.log(error?.message);
-      return error?.message;
+      return response.status(500).send(error?.message);
     }
   }
 }
