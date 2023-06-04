@@ -22,7 +22,7 @@ class UserController {
         return response.status(409).send('username already exists');
       } else {
         const newUser = new User(
-          _.pick(request?.body, ['username', 'password', 'name'])
+          _.pick(request?.body, ['name', 'username', 'password'])
         );
         const salt = await bcrypt.genSalt();
         newUser.password = await bcrypt.hash(password, salt);
@@ -44,7 +44,7 @@ class UserController {
       }
       const verifiedOk = await bcrypt.compare(password, user.password);
       if (verifiedOk) {
-        const payload = _.pick(user, ['username', 'isAdmin', 'name']);
+        const payload = _.pick(user, ['name', 'username', 'isAdmin']);
         const token = await authService.generateToken(payload);
         return response.status(200).send({ ...payload, token });
       }
