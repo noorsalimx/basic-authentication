@@ -5,10 +5,14 @@
  */
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const userRouter = require('./routers/user.route');
 const adminRoute = require('./routers/admin.route');
 
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use('/api/user', userRouter);
 app.use('/api/admin', adminRoute);
 app.get('/', (req, res) => {
