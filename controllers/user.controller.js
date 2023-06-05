@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 const User = require('../model/user.model');
 const AuthService = require('../services/auth.service');
+const Transaction = require('../model/transaction.model');
 const authService = new AuthService();
 
 class UserController {
@@ -31,9 +32,7 @@ class UserController {
       if (user) {
         return response.status(409).send('username already exists');
       } else {
-        const newUser = new User(
-          _.pick(request?.body, ['name', 'username', 'password'])
-        );
+        const newUser = new User(_.pick(request?.body, ['name', 'username', 'password']));
         const salt = await bcrypt.genSalt();
         newUser.password = await bcrypt.hash(password, salt);
         await newUser.save();
@@ -81,6 +80,57 @@ class UserController {
     } catch (error) {
       console.log(error?.message);
       return response.status(500).send(error?.message);
+    }
+  }
+
+  async checkIn(request, response) {
+    try {
+      console.log(request?.body);
+      const inData = _.pick(request?.body, ['name', 'username', 'inTime', 'checkInLocation']);
+      // inData.checkInLocation = JSON.parse(inData.checkInLocation);
+      if (
+        !inData.username ||
+        !inData?.inTime ||
+        (!inData?.checkInLocation?.latitude && !inData?.checkInLocation?.longitude)
+      ) {
+        return response.status(400).send('required field is missing');
+      }
+
+      const transaction = new Transaction(inData);
+      const result = await transaction.save();
+      console.log(result);
+      return response.status(201).send('success');
+    } catch (error) {
+      console.log(error.message);
+      response.status(500).send(error.message);
+    }
+  }
+
+  async checkOut(request, response) {
+    try {
+      console.log(request?.body);
+      const outData = _.pick(request?.body, ['username', 'outTime', 'checkOutLocation']);
+      const { username, outTime, checkOutLocation } = outData;
+      if (!username || !outTime || (!checkOutLocation?.latitude && !checkOutLocation?.longitude)) {
+        return response.status(400).send('required field is missing');
+      }
+
+      const transaction = await Transaction.find({ username: username, outTime: null });
+
+      if (transaction.length == 1) {
+        const result = await Transaction.updateOne(
+          { username: username, outTime: null },
+          { outTime, checkOutLocation },
+          { new: true }
+        );
+        console.log(result);
+        return response.status(200).send('success');
+      } else {
+        return response.status(400).send('more than 1 record found where user is not checked out');
+      }
+    } catch (error) {
+      console.log(error.message);
+      response.status(500).send(error.message);
     }
   }
 }
