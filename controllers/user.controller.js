@@ -16,8 +16,25 @@ class UserController {
 
   async getAllUser(request, response) {
     try {
-      const users = await User.find({}, { password: 0 });
+      const users = await User.find({}, { _id: 0, password: 0 });
       return response.status(200).send(users);
+    } catch (error) {
+      console.log(error?.message);
+      return response.status(500).send(error?.message);
+    }
+  }
+
+  async getUserTransaction(request, response) {
+    try {
+      const { username, query } = request?.body;
+      const user = await User.findOne({ username }, { _id: 0, password: 0 });
+      if (!user) {
+        return response.status(404).send('please check username');
+      }
+
+      const transactions = await Transaction.find({ username }, { _id: 0 });
+
+      return response.status(200).send(transactions);
     } catch (error) {
       console.log(error?.message);
       return response.status(500).send(error?.message);
@@ -89,11 +106,21 @@ class UserController {
       const inData = _.pick(request?.body, ['name', 'username', 'inTime', 'checkInLocation']);
       // inData.checkInLocation = JSON.parse(inData.checkInLocation);
       if (
-        !inData.username ||
+        !inData?.username ||
         !inData?.inTime ||
         (!inData?.checkInLocation?.latitude && !inData?.checkInLocation?.longitude)
       ) {
         return response.status(400).send('required field is missing');
+      }
+
+      const user = await User.findOne({ username: inData?.username }, { password: 0 });
+      if (!user) {
+        return response.status(404).send('please check username');
+      }
+
+      const existing = await Transaction.find({ username: inData?.username, outTime: null });
+      if (existing.length) {
+        return response.status(404).send('already checked in');
       }
 
       const transaction = new Transaction(inData);
@@ -115,7 +142,12 @@ class UserController {
         return response.status(400).send('required field is missing');
       }
 
-      const transaction = await Transaction.find({ username: username, outTime: null });
+      const user = await User.findOne({ username }, { password: 0 });
+      if (!user) {
+        return response.status(404).send('please check username');
+      }
+
+      const transaction = await Transaction.find({ username, outTime: null });
 
       if (transaction.length == 1) {
         const result = await Transaction.updateOne(
@@ -126,7 +158,10 @@ class UserController {
         console.log(result);
         return response.status(200).send('success');
       } else {
-        return response.status(400).send('more than 1 record found where user is not checked out');
+        if (transaction.length == 0) {
+          return response.status(400).send('user is not checked in');
+        }
+        return response.status(400).send('user has more than 1 checked in records');
       }
     } catch (error) {
       console.log(error.message);

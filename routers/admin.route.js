@@ -9,6 +9,7 @@ const userController = require('../controllers/user.controller');
 const AuthService = require('../services/auth.service');
 const authService = new AuthService();
 
+router.post('/get-transaction', authService.isAdmin, userController.getUserTransaction);
 router.get('/get-users', authService.isAdmin, userController.getAllUser);
 router.post('/create-user', authService.isAdmin, userController.createUser);
 
