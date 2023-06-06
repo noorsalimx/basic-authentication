@@ -16,7 +16,7 @@ class UserController {
 
   async getAllUser(request, response) {
     try {
-      const users = await User.find({}, { _id: 0, password: 0 });
+      const users = await User.find({ isAdmin: false }, { _id: 0, password: 0 });
       return response.status(200).send(users);
     } catch (error) {
       console.log(error?.message);
