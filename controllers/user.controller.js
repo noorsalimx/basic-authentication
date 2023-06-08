@@ -41,6 +41,24 @@ class UserController {
     }
   }
 
+  async getTransactions(request, response) {
+    try {
+      const { user } = request?.headers;
+      const { username } = user;
+      // const userFound = await User.findOne({ username }, { _id: 0, password: 0 });
+      // if (!user) {
+      //   return response.status(404).send('please check your');
+      // }
+
+      const transactions = await Transaction.find({ username }, { _id: 0 });
+
+      return response.status(200).send(transactions);
+    } catch (error) {
+      console.log(error?.message);
+      return response.status(500).send(error?.message);
+    }
+  }
+
   async signUp(request, response) {
     try {
       const { username, password } = request?.body;

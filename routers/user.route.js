@@ -6,10 +6,13 @@
 
 const router = require('express').Router();
 const userController = require('../controllers/user.controller');
+const AuthService = require('../services/auth.service');
+const authService = new AuthService();
 
-router.route('/signUp').post(userController.signUp);
-router.route('/signIn').post(userController.signIn);
-router.route('/checkIn').post(userController.checkIn);
-router.route('/checkOut').post(userController.checkOut);
+router.post('/signUp', userController.signUp);
+router.post('/signIn', userController.signIn);
+router.post('/checkIn', userController.checkIn);
+router.post('/checkOut', userController.checkOut);
+router.get('/transactions', authService.validateUser, userController.getTransactions);
 
 module.exports = router;

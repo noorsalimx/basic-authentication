@@ -19,7 +19,7 @@ class AuthService {
   async validateAndDecodeToken(token) {
     try {
       const decode = await jwt.verify(token, process.env.JWT_SECRET_KEY);
-      console.log('admin', decode);
+      console.log('user', decode);
       return decode;
     } catch (error) {
       console.log(error.message);
@@ -29,9 +29,8 @@ class AuthService {
 
   async isAdmin(request, response, next) {
     try {
-      const { headers } = request;
-      const accessToken = headers?.authorization || headers?.token;
-      console.log(accessToken);
+      const accessToken = request?.headers?.authorization || request?.headers?.token;
+      console.log('access-token', accessToken);
       if (accessToken?.includes('Bearer')) {
         const [_, token] = accessToken.split(' ');
         const auth = new AuthService();
@@ -39,12 +38,31 @@ class AuthService {
         if (user.isAdmin) {
           next();
         } else {
-          response.status(401).send('You are not an authorized user');
+          return response.status(401).send('You are not an authorized user');
         }
       } else {
-        response.status(401).send('Not Authorized');
+        return response.status(401).send('Not Authorized');
       }
     } catch (error) {
+      return response.status(400).send('Token expired or invalid token');
+    }
+  }
+
+  async validateUser(request, response, next) {
+    try {
+      const accessToken = request?.headers?.authorization || request?.headers?.token;
+      console.log('access-token', accessToken);
+      if (accessToken?.includes('Bearer')) {
+        const [_, token] = accessToken.split(' ');
+        const auth = new AuthService();
+        const user = await auth.validateAndDecodeToken(token);
+        request.headers.user = user;
+        next();
+      } else {
+        return response.status(401).send('Not Authorized');
+      }
+    } catch (error) {
+      console.log(error.message);
       return response.status(400).send('Token expired or invalid token');
     }
   }
